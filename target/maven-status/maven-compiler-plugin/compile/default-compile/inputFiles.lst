@@ -1,5 +1,10 @@
-/Users/pratikm/workspace/OracleStorageCloud/src/main/java/com/pratik/objectstore/fileutils/FileMd5Calculator.java
-/Users/pratikm/workspace/OracleStorageCloud/src/main/java/com/pratik/objectstore/fileutils/FileMd5CalculatorImpl.java
+/Users/pratikm/workspace/OracleStorageCloud/src/main/java/com/pratik/objectstore/segment/LocalFileSegmenterImpl.java
+/Users/pratikm/workspace/OracleStorageCloud/src/main/java/com/pratik/objectstore/segment/Segmentable.java
+/Users/pratikm/workspace/OracleStorageCloud/src/main/java/com/pratik/objectstore/api/Upload.java
+/Users/pratikm/workspace/OracleStorageCloud/src/main/java/com/pratik/objectstore/ServletInitializer.java
+/Users/pratikm/workspace/OracleStorageCloud/src/main/java/com/pratik/objectstore/checksum/Checksum.java
 /Users/pratikm/workspace/OracleStorageCloud/src/main/java/com/pratik/objectstore/service/ObjectStoreController.java
-/Users/pratikm/workspace/OracleStorageCloud/src/main/java/com/pratik/objectstore/service/OracleStorageCloudApplication.java
-/Users/pratikm/workspace/OracleStorageCloud/src/main/java/com/pratik/objectstore/service/ServletInitializer.java
+/Users/pratikm/workspace/OracleStorageCloud/src/main/java/com/pratik/objectstore/api/UploadService.java
+/Users/pratikm/workspace/OracleStorageCloud/src/main/java/com/pratik/objectstore/checksum/Md5Checksum.java
+/Users/pratikm/workspace/OracleStorageCloud/src/main/java/com/pratik/objectstore/OracleStorageCloudApplication.java
+/Users/pratikm/workspace/OracleStorageCloud/src/main/java/com/pratik/objectstore/api/Download.java

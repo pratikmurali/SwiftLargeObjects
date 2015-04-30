@@ -1,5 +1,11 @@
-com/pratik/objectstore/service/OracleStorageCloudApplication.class
-com/pratik/objectstore/fileutils/FileMd5CalculatorImpl.class
-com/pratik/objectstore/fileutils/FileMd5Calculator.class
-com/pratik/objectstore/service/ServletInitializer.class
+com/pratik/objectstore/checksum/Checksum.class
+com/pratik/objectstore/OracleStorageCloudApplication.class
+com/pratik/objectstore/segment/LocalFileSegmenterImpl.class
 com/pratik/objectstore/service/ObjectStoreController.class
+com/pratik/objectstore/segment/Segmentable.class
+com/pratik/objectstore/checksum/Md5Checksum.class
+com/pratik/objectstore/api/Upload.class
+com/pratik/objectstore/api/Download.class
+com/pratik/objectstore/api/UploadService$1.class
+com/pratik/objectstore/api/UploadService.class
+com/pratik/objectstore/ServletInitializer.class

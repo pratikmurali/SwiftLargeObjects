@@ -8,7 +8,14 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
+
+@Component
 public class LocalFileSegmenterImpl implements Segmentable {
+
+	private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
 	@Override
 	public List<File> segmentFile(File f, int chunkSize, char suffix)
@@ -27,6 +34,7 @@ public class LocalFileSegmenterImpl implements Segmentable {
 				// write each chunk of data into separate file with an
 				// alphabetical suffix
 				File chunkFile = new File(f.getParent(), name + "." + suffix++);
+				logger.debug(" Creating chunk " + chunkFile.getName());
 				try (FileOutputStream out = new FileOutputStream(chunkFile)) {
 					out.write(byteBuffer, 0, tmp);// tmp is chunk size
 				}
@@ -37,11 +45,6 @@ public class LocalFileSegmenterImpl implements Segmentable {
 		}
 
 		return chunks;
-
-	}
-
-	public static void main(String[] args) {
-		// TODO Auto-generated method stub
 
 	}
 
