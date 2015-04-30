@@ -1,0 +1,5 @@
+com/pratik/objectstore/service/OracleStorageCloudApplication.class
+com/pratik/objectstore/fileutils/FileMd5CalculatorImpl.class
+com/pratik/objectstore/fileutils/FileMd5Calculator.class
+com/pratik/objectstore/service/ServletInitializer.class
+com/pratik/objectstore/service/ObjectStoreController.class
