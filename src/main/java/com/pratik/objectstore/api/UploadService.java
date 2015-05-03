@@ -26,7 +26,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.pratik.objectstore.checksum.Checksum;
-import com.pratik.objectstore.checksum.Md5Checksum;
 import com.pratik.objectstore.segment.Segmentable;
 
 /**
@@ -37,21 +36,26 @@ public class UploadService implements Upload {
 
 	@Autowired
 	Segmentable myFileSegmenter;
+	
+	@Autowired
+	Checksum myMd5Calculator;
 
 	private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
 	@Override
-	public void uploadLargeObject(final String mimeType, final String absFilePath) {
+	public void uploadLargeObject(final String mimeType,
+			final String absFilePath) {
 
 		int processors = Runtime.getRuntime().availableProcessors();
 
 		try {
 			char suffix = 'a';
-			final Checksum myMd5Calculator = new Md5Checksum();
+			
+			File file = new File(absFilePath);
+			final String fileName= file.getName();
 
 			// split into 100 MB chunks.
-			List<File> listOfSegments = myFileSegmenter.segmentFile(new File(
-					absFilePath), 104857600, suffix);
+			List<File> listOfSegments = myFileSegmenter.segmentFile(file, 104857600, suffix);
 
 			// List the segments
 			for (File segment : listOfSegments) {
@@ -63,9 +67,9 @@ public class UploadService implements Upload {
 
 			// Create a Container
 			UUID guid = UUID.randomUUID();
-			
-			
-			myConnection.createContainer("demo-container4");
+			final String containerName = "pratik_" + guid;
+
+			myConnection.createContainer(containerName);
 
 			List<Container> containers = myConnection.listContainers();
 			logger.debug("Found the following containers on the Account");
@@ -77,7 +81,7 @@ public class UploadService implements Upload {
 
 			final Map<String, String> fileHashesMap = new LinkedHashMap<>();
 
-			// Upload segments to a container called demo-container4
+			// Upload segments to a container called pratik_<some_guid>
 
 			ExecutorService parallelUploadExecutorService = Executors
 					.newFixedThreadPool(processors * 10);
@@ -94,11 +98,10 @@ public class UploadService implements Upload {
 									.createChecksumString(absFilePath
 											+ segment.getName());
 							fileHashesMap.put(segment.getName(), md5Hash);
-							System.out.println("Uploading Segment "
+							logger.debug("Uploading Segment "
 									+ segment.getName());
-							myConnection.storeObject("demo-container4",
-									segment.getName(), mimeType,
-									segmentFis);
+							myConnection.storeObject(containerName,
+									segment.getName(), mimeType, segmentFis);
 							segmentFis.close();
 
 						} catch (Exception e) {
@@ -112,6 +115,7 @@ public class UploadService implements Upload {
 			try {
 				for (int i = 0; i < listOfSegments.size(); i++) {
 
+					//Retrieve the Future<CloudStorage> from the completion service.
 					CloudStorage connection = (CloudStorage) completionService
 							.take().get();
 					if (connection != null) {
@@ -119,8 +123,12 @@ public class UploadService implements Upload {
 					}
 
 				}
-			} catch (InterruptedException | ExecutionException ex) {
+			} catch (ExecutionException ex) {
 				ex.printStackTrace();
+			} catch (InterruptedException ie) {
+				//Keep state and don't swallow the InterruptedException.
+				Thread.currentThread().interrupt();
+				
 			} finally {
 				if (parallelUploadExecutorService != null) {
 					parallelUploadExecutorService.shutdownNow();
@@ -128,9 +136,8 @@ public class UploadService implements Upload {
 			}
 
 			// Store the Manifest after uploading the segments.
-			myConnection.storeObjectManifest("demo-container4",
-					"TechSenateDemoHD.manifest", "video/quicktime",
-					"demo-container4", "" + "TechSenateDemoHD.mov",
+			myConnection.storeObjectManifest(containerName, fileName
+					+ ".manifest", mimeType, containerName, "" + fileName,
 					fileHashesMap);
 			logger.debug("Uploaded Segments have been mapped together");
 		} catch (Exception e) {
