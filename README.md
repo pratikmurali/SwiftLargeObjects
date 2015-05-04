@@ -35,3 +35,4 @@ The primary use-case of object store is back-up and archive which means that cli
      Future associated with each task in that pool. I then use the completion service to pool for the results of the future.
      I also use a reentrant lock on the file segmentation logic, to ensure that multiple writers do not muck around with the
      file chunking at the same time.
+
