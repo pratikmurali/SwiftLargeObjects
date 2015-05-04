@@ -29,11 +29,12 @@ public class LocalFileSegmenterImpl implements Segmentable {
 			String name = f.getName();
 
 			int tmp = 0;
+			int count=0;
 
 			while ((tmp = bis.read(byteBuffer)) > 0) {
 				// write each chunk of data into separate file with an
 				// alphabetical suffix
-				File chunkFile = new File(f.getParent(), name + "." + suffix++);
+				File chunkFile = new File(f.getParent(), name + "." + generateBase26Prefix(count++));
 				logger.debug(" Creating chunk " + chunkFile.getName());
 				try (FileOutputStream out = new FileOutputStream(chunkFile)) {
 					out.write(byteBuffer, 0, tmp);// tmp is chunk size
@@ -47,5 +48,26 @@ public class LocalFileSegmenterImpl implements Segmentable {
 		return chunks;
 
 	}
+	
+	/**
+	 * Generate Excel like prefixes
+	 * @param number
+	 * @return
+	 */
+	public static String generateBase26Prefix (int number) 
+    {     
+        int dividend = number;   
+        int i;
+        String columnName = "";     
+        int modulo;     
+        while (dividend > 0)     
+        {        
+            modulo = (dividend - 1) % 26;         
+            i = 65 + modulo;
+            columnName = new Character((char)i).toString() + columnName;        
+            dividend = (int)((dividend - modulo) / 26);    
+        }       
+        return columnName; 
+    }  
 
 }
