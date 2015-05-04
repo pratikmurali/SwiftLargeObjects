@@ -7,6 +7,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,6 +18,7 @@ import org.springframework.stereotype.Component;
 public class LocalFileSegmenterImpl implements Segmentable {
 
 	private final Logger logger = LoggerFactory.getLogger(this.getClass());
+	private Lock lock = new ReentrantLock();
 
 	@Override
 	public List<File> segmentFile(File f, int chunkSize, char suffix)
@@ -23,6 +26,9 @@ public class LocalFileSegmenterImpl implements Segmentable {
 
 		List<File> chunks = new ArrayList<>();
 		byte[] byteBuffer = new byte[chunkSize];
+		
+	    //Ensure multiple threads don't start chunking the file.
+		lock.lock();
 
 		try (BufferedInputStream bis = new BufferedInputStream(
 				new FileInputStream(f))) {
@@ -44,6 +50,8 @@ public class LocalFileSegmenterImpl implements Segmentable {
 			}
 
 		}
+		//Release the Lock once chunking is complete.
+		lock.unlock();
 
 		return chunks;
 
