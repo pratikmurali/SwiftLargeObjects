@@ -24,7 +24,7 @@ The primary use-case of object store is back-up and archive which means that cli
      executor and got better performance with a fixed pool and controlled number of threads (which means larger chunk sizes 
      and fewer chunks). ThreadPools use a bounded buffer from which upload tasks are executed. 
   3. Fault-Tolerance
-     Fault Tolerance is best taken care off by using a specific framwork like AKKA which uses actors and supervised    
+     Fault Tolerance is best taken care off by using a specific framwork like AKKA which uses actors and supervised      
      hierarchies. Building that is next on my TODO list. At the moment i am using some basic FT to abort tasks in order
      to ensure data integrity.
   4. Concurrency
