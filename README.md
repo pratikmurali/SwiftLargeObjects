@@ -19,7 +19,14 @@ The primary use-case of object store is back-up and archive which means that cli
      about the file chunks and the manifest itself has an MD5 has associated with it which is sent as a part of the HTTP           header. When the file chunks and the manifest are retrieved, the chunks a stiched back, a new MD5 hash is calcluated and
      compared with the existing MD5 hash to verify Data Integrity.
   2. Performance
+     Disk I/O is faster than the network uploads. With this in mind, i tried out various combination of chunk sizes and chunk      numbers. I have a 4 core CPU and SSD hard drive. Given that file chunk uploads are homogenous tasks which don't interfere
+     with each other, i was able to exploit some parallelism over here. I played around with a FixedPool and a CachedPool     
+     executor and got better performance with a fixed pool and controlled number of threads (which means larger chunk sizes 
+     and fewer chunks). ThreadPools use a bounded buffer from which upload tasks are executed. 
   3. Fault-Tolerance
+     Fault Tolerance is best taken care off by using a specific framwork like AKKA which uses actors and supervised    
+     hierarchies. Building that is next on my TODO list. At the moment i am using some basic FT to abort tasks in order
+     to ensure data integrity.
   4. Concurrency
-     I tried to exploit some parallelism over here by dividing the homogenous tasks of uploading file chunks to be processed         concurrently. I submit a bactch of computations (which in this case is an upload) to a ThreadPool executor and retain a
+     I tried to exploit some parallelism over here by dividing the homogenous tasks of uploading file chunks to be processed       concurrently. I submit a batch of computations (which in this case is an upload) to a ThreadPool executor and retain a
      Future associated with each task in that pool. I then use the completion service to pool for the results of the future.
