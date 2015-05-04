@@ -18,6 +18,7 @@ import org.springframework.stereotype.Component;
 public class LocalFileSegmenterImpl implements Segmentable {
 
 	private final Logger logger = LoggerFactory.getLogger(this.getClass());
+	//Use a Reentrant lock
 	private Lock lock = new ReentrantLock();
 
 	@Override
