@@ -15,6 +15,11 @@ The primary use-case of object store is back-up and archive which means that cli
 
 ##Non-functional Design Requirements
   1. Data-Integrity
+     I ensure data integrity by using an MD5 hash on the file chunks and the manifest. I store the hashes of the file chunks       into a map and store that as additional metadata while storing the Manifest. Additionally the manifest stores information
+     about the file chunks and the manifest itself has an MD5 has associated with it which is sent as a part of the HTTP           header. When the file chunks and the manifest are retrieved, the chunks a stiched back, a new MD5 hash is calcluated and
+     compared with the existing MD5 hash to verify Data Integrity.
   2. Performance
   3. Fault-Tolerance
   4. Concurrency
+     I tried to exploit some parallelism over here by dividing the homogenous tasks of uploading file chunks to be processed         concurrently. I submit a bactch of computations (which in this case is an upload) to a ThreadPool executor and retain a
+     Future associated with each task in that pool. I then use the completion service to pool for the results of the future.
