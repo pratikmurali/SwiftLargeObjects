@@ -21,17 +21,21 @@ import oracle.cloud.storage.CloudStorageConfig;
 import oracle.cloud.storage.CloudStorageFactory;
 import oracle.cloud.storage.model.Container;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import com.pratik.objectstore.checksum.Checksum;
+import com.pratik.objectstore.model.UploadResponse;
 import com.pratik.objectstore.segment.Segmentable;
 
 /**
  * @author pratikm
  *
  */
+@Service
 public class UploadService implements Upload {
 
 	@Autowired
@@ -43,19 +47,34 @@ public class UploadService implements Upload {
 	private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
 	@Override
-	public void uploadLargeObject(final String mimeType,
-			final String absFilePath) {
+	public UploadResponse uploadLargeObject(final String mimeType,
+			final String absFilePath, final int noOfChunks) {
 
+		UploadResponse response = new UploadResponse();
+		
 		int processors = Runtime.getRuntime().availableProcessors();
 
 		try {
 			char suffix = 'a';
-			
+
+			logger.debug("The absolute File path from the request is"
+					+ absFilePath);
+			logger.debug("The mime type from the request is" + mimeType);
+			logger.debug("The number of chunks from the request is "
+					+ noOfChunks);
+			;
 			File file = new File(absFilePath);
-			final String fileName= file.getName();
+			final String fileName = file.getName();
+
+			// Get File Length in bytes.
+			long fileSize = file.length();
+			int sizeOfEachSegment = (int) (fileSize / noOfChunks);
+			logger.debug("Will setup parallel uploads of size "
+					+ sizeOfEachSegment / 1000 + " KB");
 
 			// split into 100 MB chunks.
-			List<File> listOfSegments = myFileSegmenter.segmentFile(file, 104857600, suffix);
+			List<File> listOfSegments = myFileSegmenter.segmentFile(file,
+					sizeOfEachSegment, suffix);
 
 			// List the segments
 			for (File segment : listOfSegments) {
@@ -68,6 +87,8 @@ public class UploadService implements Upload {
 			// Create a Container
 			UUID guid = UUID.randomUUID();
 			final String containerName = "pratik_" + guid;
+
+			response.setContainerName(containerName);
 
 			myConnection.createContainer(containerName);
 
@@ -82,9 +103,9 @@ public class UploadService implements Upload {
 			final Map<String, String> fileHashesMap = new LinkedHashMap<>();
 
 			// Upload segments to a container called pratik_<some_guid>
-
+			// A cachedThreadPool to have the ability to reuse threads.
 			ExecutorService parallelUploadExecutorService = Executors
-					.newFixedThreadPool(processors * 10);
+					.newFixedThreadPool(processors*10);
 			CompletionService<Object> completionService = new ExecutorCompletionService<>(
 					parallelUploadExecutorService);
 
@@ -95,8 +116,10 @@ public class UploadService implements Upload {
 							FileInputStream segmentFis = new FileInputStream(
 									segment);
 							String md5Hash = myMd5Calculator
-									.createChecksumString(absFilePath
-											+ segment.getName());
+									.createChecksumString(StringUtils
+											.substringBeforeLast(absFilePath,
+													"/")
+											+ "/" + segment.getName());
 							fileHashesMap.put(segment.getName(), md5Hash);
 							logger.debug("Uploading Segment "
 									+ segment.getName());
@@ -115,7 +138,8 @@ public class UploadService implements Upload {
 			try {
 				for (int i = 0; i < listOfSegments.size(); i++) {
 
-					//Retrieve the Future<CloudStorage> from the completion service.
+					// Retrieve the Future<CloudStorage> from the completion
+					// service.
 					CloudStorage connection = (CloudStorage) completionService
 							.take().get();
 					if (connection != null) {
@@ -126,12 +150,14 @@ public class UploadService implements Upload {
 			} catch (ExecutionException ex) {
 				ex.printStackTrace();
 			} catch (InterruptedException ie) {
-				//Keep state and don't swallow the InterruptedException.
+				// Keep state and don't swallow the InterruptedException.
 				Thread.currentThread().interrupt();
-				
+
 			} finally {
 				if (parallelUploadExecutorService != null) {
-					parallelUploadExecutorService.shutdownNow();
+					final List<Runnable> rejected = parallelUploadExecutorService
+							.shutdownNow();
+					logger.debug("Rejected tasks(uploads) {}:", rejected.size());
 				}
 			}
 
@@ -140,10 +166,18 @@ public class UploadService implements Upload {
 					+ ".manifest", mimeType, containerName, "" + fileName,
 					fileHashesMap);
 			logger.debug("Uploaded Segments have been mapped together");
+
+			String originalFileMd5 = myMd5Calculator
+					.createChecksumString(absFilePath);
+			logger.debug("Original file MD5 hash =" + originalFileMd5);
+			response.setMd5Hash(originalFileMd5);
+			response.setManifestFileName(fileName + ".manifest");
+
 		} catch (Exception e) {
 			logger.error(e.getLocalizedMessage());
 			e.printStackTrace();
 		}
+		return response;
 	}
 
 	/**
@@ -164,6 +198,7 @@ public class UploadService implements Upload {
 				.getStorage(myConfig);
 		return myConnection;
 	}
+	
 }
 		
 
