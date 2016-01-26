@@ -189,8 +189,8 @@ public class UploadService implements Upload {
 		CloudStorageConfig myConfig = new CloudStorageConfig();
 
 		myConfig.setServiceName("storagetrial1800-usnetapptrial32134")
-				.setUsername("pratik79@me.com")
-				.setPassword("Gold>Rush49".toCharArray())
+				.setUsername("******")
+				.setPassword("******".toCharArray())
 				.setServiceUrl(
 						"https://usnetapptrial32134.storage.oraclecloud.com");
 
